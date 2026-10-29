@@ -10,7 +10,7 @@ export class Permission extends Base {
   name: string;
 
   @Prop({ required: true })
-  action: string; // e.g., 'create:user', 'update:booking'
+  action: string; // e.g., 'create:user', 'update:role'
 
   @Prop({ required: false, default: '' })
   description: string;
