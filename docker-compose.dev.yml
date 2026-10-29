@@ -1,0 +1,41 @@
+# Local development override: bash setup.sh --dev
+# Adds a local MongoDB and runs the app in watch mode with the source bind-mounted.
+services:
+  app:
+    build:
+      target: dev
+    image: nest-boiler-plate:dev
+    environment:
+      NODE_ENV: development
+      DATABASE_LINK: mongodb://mongo:27017
+    # Only source and config are mounted: node_modules comes from the image, and dist/ stays
+    # in the container (nest deletes it on every build, which fails on a mount point).
+    # Rebuild after changing package.json: bash setup.sh --dev
+    volumes:
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./tsconfig.build.json:/app/tsconfig.build.json:ro
+      - ./nest-cli.json:/app/nest-cli.json:ro
+      - /app/logs
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping").ok']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - main_network
+
+volumes:
+  mongo_data:

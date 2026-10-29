@@ -1,0 +1,29 @@
+name: nest-boiler-plate
+
+services:
+  app:
+    build:
+      context: .
+      target: runner
+    image: nest-boiler-plate:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '${PORT:-4002}:${PORT:-4002}'
+    volumes:
+      - app_logs:/app/logs
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:$${PORT:-4002}/ping >/dev/null || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - main_network
+
+volumes:
+  app_logs:
+
+networks:
+  main_network:
+    external: true
